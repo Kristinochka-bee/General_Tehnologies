@@ -1,0 +1,15 @@
+SELECT * FROM hr.employees;
+
+SELECT first_name, last_name FROM hr.employees WHERE department_id = 90 ; 
+
+SELECT first_name, last_name FROM hr.employees WHERE salary > 5000;
+
+SELECT *  FROM hr.employees WHERE salary < 8000 and  job_id = 'FI_ACCOUNT';
+
+SELECT * FROM hr.employees WHERE salary between 5000 and 7000;
+
+SELECT * FROM hr.employees WHERE commission_pct is NULL;
+
+SELECT * FROM hr.employees WHERE department_id  like 110 and department_id like 80;
+
+SELECT * FROM hr.employees WHERE  last_name LIKE '%_ll_%' OR last_name LIKE '%_kk_%' ;
