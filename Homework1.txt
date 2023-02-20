@@ -1,0 +1,190 @@
+
+-- * Изучить что такое AUTO_INCREMENT, где стоит его применить в этой базе данных
+-- Заполнить таблицу пользователей
+-- Заполнить таблицу товаров
+-- Заполнить таблицу заказов
+-- (Опционально) заполнить таблицы скидок
+
+CREATE TABLE goods(
+	id integer auto_increment primary key,
+    goods_name varchar (128) unique,
+	qty integer NOT NULL CHECK (qty >= 0),
+    price integer NOT NULL CHECK (price > 0)
+);
+INSERT INTO goods(
+        id,
+        goods_name,
+        qty,
+        price
+    )VALUES
+    (1, "Laptop Sleeve", 30, 100),
+    (2,"Mouse Pad", 30, 250),
+	(3,"Laptop Shoulder Bag", 12 , 80),
+    (4,"Gaming Mouse", 60, 700),
+    (5,"Computer Mouse", 45, 350),
+    (6,"ProCase MacBock", 7, 550);
+    SELECT * FROM goods;
+
+
+CREATE TABLE users(
+	id integer auto_increment PRIMARY KEY,
+    first_name varchar (65) NOT NULL,
+    last_name varchar (65) NOT NULL,
+    user_age integer CHECK (user_age >= 18),
+    address varchar (128) NOT NULL,
+    telefon_number varchar(128) unique ,
+    constraint unique_fullname
+    UNIQUE (first_name, last_name)
+);
+
+
+INSERT INTO users(
+    first_name,
+    last_name,
+    user_age,
+    address,
+    telefon_number
+)VALUES
+( "Maria", "Volkova", 24, "Berlin", "+49 151 83530272"),
+( "Yan", "Milan", 22, "Hamburg", "+49 151 844560272"),
+( "Bob", "Shnider", 45, "Dresden", "+49 151 5644560255"),
+( "Anna", "Miller", 33, "Duseldorf", "+49 151 84777272"),
+( "Bony", "Anderson", 55, "Belgium", "+ 44 577 97765489"),
+( "Olga", "Belova", 34, "USA", "+22 467 4392910116"),
+( "Bobbi", "Shulman", 22, "Argentina", "+33 48899482021"),
+( "Solomia", "Prihodko", 28, "Ukraine", "+380 931227362" ),
+( "Alecsandr", "Podolyak", 19, "Ukraine", "+380 9591986352"),
+( "Tatiana","Shumeiko", 31, "Poland", "+44 29019276185");
+ SELECT * FROM users;
+
+
+
+CREATE TABLE orders(
+	id integer auto_increment primary key,
+	clientId integer NOT NULL,
+	delivery_status boolean,
+	totalPrice integer NOT NULL,
+    CONSTRAINT clientId_fk
+		FOREIGN KEY (clientId)
+			REFERENCES users(id)
+);
+
+INSERT INTO orders(
+    clientId,
+    delivery_status,
+    totalPrice
+)VALUES
+(2, True, 100 ),
+(1, True, 250),
+(4, False, 50),
+(3, True, 120),
+(4, True, 200),
+(5, False, 250),
+(6, False, 250),
+(7, TRUE, 250),
+(8, TRUE, 250),
+(9, TRUE, 250),
+(10, TRUE, 250);
+ SELECT * FROM orders;
+
+
+-- товары в определенном заказе
+CREATE TABLE orderedGoods (
+	order_id integer  NOT NULL,
+	good_id integer NOT NULL,
+    qty integer NOT NULL CHECK (qty > 0),
+	PRIMARY KEY(order_id, good_id),
+    FOREIGN KEY (order_id)
+		REFERENCES orders(id),
+	FOREIGN KEY (good_id)
+		REFERENCES goods(id)
+);
+
+INSERT INTO orderedGoods (
+	order_id,
+    good_id ,
+    qty
+)value
+(1, 5, 2),
+(2, 6, 1),
+(3, 1, 20),
+(4, 5, 1),
+(5, 4, 8),
+(6, 2, 5),
+(7, 3, 1),
+(8, 5, 3),
+(9, 4, 2),
+(10, 2, 12);
+
+
+
+
+-- табличка со скидками для КОНКРЕТНЫХ пользователей на КОНКРЕТНЫЙ товар
+CREATE TABLE discounts_personal(
+	discount integer NOT NULL,
+    good_id integer NOT NULL,
+    user_id integer NOT NULL,
+    PRIMARY KEY (user_id, good_id),   -- эти данные(комбинация) может быть один раз в таблице, таким образом мы идентифицируем данные
+    FOREIGN KEY (good_id)
+		REFERENCES goods(id),
+	FOREIGN KEY (user_id)
+		REFERENCES users(id)
+    
+);
+SELECT * FROM users;
+
+INSERT INTO discounts_personal(
+	discount,
+    good_id,
+    user_id
+)VALUES
+(10, 2, 7),
+(10, 6, 10),
+(10, 5, 6),
+(20, 2, 10),
+(15, 3, 3),
+(5, 3, 1);
+
+
+-- табличка со скидками на КОНКРЕТНЫЕ товары до КОНКРЕТНОЙ даты
+CREATE TABLE discounts_dated(
+	discount integer NOT NULL,
+    last_date date NOT NULL,  
+    good_id integer NOT NULL,
+    FOREIGN KEY (good_id)
+		REFERENCES goods(id),
+    PRIMARY KEY (good_id, last_date)
+);
+INSERT INTO discounts_dated(
+	discount,
+    last_date,
+    good_id
+)VALUES
+(12, '2023-07-05', 3),
+(10, '2023-02-10', 2),
+(5, '2023-03-09', 6),
+(10,'2023-02-28', 4),
+(20, '2023-03-08', 1),
+(12, '2023-05-04', 5);
+
+
+
+-- табличка дискаунт на все и навсегда для конкретного КЛИЕНТА
+CREATE TABLE discounts_permanent_personal(
+	discountId integer PRIMARY KEY,
+    discount integer NOT NULL,
+    discount_status boolean,
+    user_id integer NOT NULL,
+    FOREIGN KEY (user_id)
+		REFERENCES users(id)
+);
+
+-- Вывести идентификаторы(id) товаров в КОНКРЕТНОМ заказе
+SELECT good_id FROM orderedGoods WHERE order_id = 4;
+-- Вывести ВСЕ скидкы (discounts_dated) на КОНКРЕТНЫЙ товар
+SELECT discount FROM discounts_dated WHERE good_id in (1,4,3);
+-- Вывести ВСЕ скидкы (discounts_personal) на КОНКРЕТНЫЙ товар
+SELECT discount FROM discounts_personal WHERE good_id = 3;
+-- Вывести ВСЕ скидкы (discounts_personal) для КОНКРЕТНОГО пользователя
+SELECT discount FROM discounts_personal WHERE user_id = 10;
+
